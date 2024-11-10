@@ -2,6 +2,9 @@
 
 This repo simulates an entire architecture using Docker containers, providing an environment with several services, including **Elasticsearch**, **Kibana**, **RabbitMQ**, and a custom **PCAP Processor**. The RabbitMQ service is exposed so that log collector agents, which are deployed on various servers or devices, can send PCAP files to it for processing.
 
+## Demo Video
+Watch a walkthrough of the project setup and functionality in our [Demo Video](https://youtu.be/2Nd6C_SpXak).
+
 ## Architecture Overview
 ![alt text](image.png)
 
