@@ -1,0 +1,65 @@
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - network.host=0.0.0.0
+    ports:
+      - "9200:9200"
+    networks:
+      - rabbitmq_net
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.10.2
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - rabbitmq_net
+  
+  rabbitmq:
+    image: rabbitmq:3.11-management-alpine
+    container_name: rabbitmq_container
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - rabbitmq_net
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+
+  pcap_processor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pcap_processor_container
+    depends_on:
+      - rabbitmq
+    networks:
+      - rabbitmq_net
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+    command: [ "python", "rabbitmq_to_apis.py" ] 
+
+
+networks:
+  rabbitmq_net:
+    name: rabbitmq_net
+    driver: bridge
+    external: true
